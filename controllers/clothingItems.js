@@ -30,11 +30,36 @@ const createItem = (req, res) => {
         .send({ message: "An error occured on the server." });
     });
 };
-
+/*
 const deleteItem = (req, res) => {
   ClothingItem.findByIdAndDelete(req.params.itemId)
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => {
+      res.status(200).send(item);
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(invalidInput).send({ message: "Invalid data" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(dataDoesNotExist).send({ message: err.message });
+      }
+      return res
+        .status(serverError)
+        .send({ message: "An error occured on the server." });
+    });
+};
+*/
+const deleteItem = (req, res) => {
+  ClothingItem.findById(req.params.itemId)
+    .orFail()
+    .then((item) => {
+      if (!(item.owner.toString() === req.user._id)) {
+        return res.status(403).send("Item does not belong to user");
+      }
+      ClothingItem.findByIdAndDelete(req.params.itemId);
+      return res.send(item);
+    })
     .catch((err) => {
       if (err.name === "CastError") {
         return res.status(invalidInput).send({ message: "Invalid data" });

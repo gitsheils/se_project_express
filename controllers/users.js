@@ -1,3 +1,5 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const {
   invalidInput,
@@ -33,7 +35,7 @@ const getUser = (req, res) => {
         .send({ message: "An error occured on the server." });
     });
 };
-
+/*
 const createUser = (req, res) => {
   const { name, avatar } = req.body;
   User.create({ name, avatar })
@@ -49,5 +51,69 @@ const createUser = (req, res) => {
         .send({ message: "An error occured on the server." });
     });
 };
+*/
+const createUser = (req, res) => {
+  const { name, avatar, email, password } = req.body;
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
+    .then((user) => {
+      res.status(201).send(user);
+    })
+    .catch((err) => {
+      if (err.name === "MongoServerError") {
+        return res
+          .status(invalidInput)
+          .send({ message: "This email is already taken" });
+      }
+      if (err.name === "ValidationError") {
+        return res.status(invalidInput).send({ message: "Invalid data" });
+      }
+      return res
+        .status(serverError)
+        .send({ message: "An error occured on the server." });
+    });
+};
 
-module.exports = { getUsers, getUser, createUser };
+const login = (req, res) => {
+  console.log(req.headers);
+  const { JWT_SECRET } = process.env;
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.send({ token });
+    })
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(invalidInput).send({ message: "Invalid data" });
+      }
+      return res
+        .status(serverError)
+        .send({ message: "An error occured on the server." });
+    });
+};
+const updateProfile = (req, res) => {
+  const { name, avatar } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, avatar },
+    { new: true, runValidators: true }
+  )
+    .then((user) => {
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(invalidInput).send({ message: "Invalid data" });
+      }
+      return res
+        .status(serverError)
+        .send({ message: "An error occured on the server." });
+    });
+};
+
+module.exports = { getUsers, getUser, createUser, login, updateProfile };
