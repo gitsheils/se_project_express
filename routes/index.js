@@ -18,11 +18,10 @@ router.use((req, res) => {
 
 router.post("/signin", login);
 router.post("/signup", createUser);
+router.use("/items", clothingItemRouter);
 
 router.use(authorization);
 router.use("/users", userRouter);
-
-router.use("/items", clothingItemRouter);
 
 router.use((req, res) => {
   res

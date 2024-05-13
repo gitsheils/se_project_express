@@ -5,65 +5,29 @@ const {
   invalidInput,
   dataDoesNotExist,
   serverError,
+  conflict,
+  unauthorized,
 } = require("../utils/errors");
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch(() =>
-      res
-        .status(serverError)
-        .send({ message: "An error occured on the server." })
-    );
-};
-
-const getUser = (req, res) => {
-  User.findById(req.params.userId)
-    .orFail()
-    .then((user) => {
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(invalidInput).send({ message: "Invalid data" });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(dataDoesNotExist).send({ message: err.message });
-      }
-      return res
-        .status(serverError)
-        .send({ message: "An error occured on the server." });
-    });
-};
-/*
-const createUser = (req, res) => {
-  const { name, avatar } = req.body;
-  User.create({ name, avatar })
-    .then((user) => {
-      res.status(201).send(user);
-    })
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res.status(invalidInput).send({ message: "Invalid data" });
-      }
-      return res
-        .status(serverError)
-        .send({ message: "An error occured on the server." });
-    });
-};
-*/
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
   bcrypt
     .hash(password, 10)
     .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
-      res.status(201).send(user);
+      res
+        .status(201)
+        .send({
+          name: user.name,
+          avatar: user.avatar,
+          email: user.email,
+          _id: user._id,
+        });
     })
     .catch((err) => {
       if (err.name === "MongoServerError") {
         return res
-          .status(invalidInput)
+          .status(conflict)
           .send({ message: "This email is already taken" });
       }
       if (err.name === "ValidationError") {
@@ -76,8 +40,7 @@ const createUser = (req, res) => {
 };
 
 const login = (req, res) => {
-  console.log(req.headers);
-  const { JWT_SECRET } = process.env;
+  const { JWT_SECRET = "dev-key" } = process.env;
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -88,8 +51,8 @@ const login = (req, res) => {
       res.send({ token });
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res.status(invalidInput).send({ message: "Invalid data" });
+      if (err.message === "Incorrect email or password") {
+        return res.status(unauthorized).send({ message: err.message });
       }
       return res
         .status(serverError)
@@ -115,5 +78,13 @@ const updateProfile = (req, res) => {
         .send({ message: "An error occured on the server." });
     });
 };
+const getCurrentUser = (req, res) => {
+  User.findById(req.user._id).then((user) => res.send(user));
+};
 
-module.exports = { getUsers, getUser, createUser, login, updateProfile };
+module.exports = {
+  createUser,
+  login,
+  updateProfile,
+  getCurrentUser,
+};
