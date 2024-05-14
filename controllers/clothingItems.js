@@ -40,9 +40,9 @@ const deleteItem = (req, res) => {
           .status(forbidden)
           .send({ message: "Item does not belong to user" });
       }
-      ClothingItem.findByIdAndDelete(req.params.itemId).then(() => {
-        return res.send(item);
-      });
+      return ClothingItem.findByIdAndDelete(req.params.itemId).then(() =>
+        res.send(item)
+      );
     })
     .catch((err) => {
       if (err.name === "CastError") {

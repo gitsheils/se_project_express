@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const {
   invalidInput,
-  dataDoesNotExist,
   serverError,
   conflict,
   unauthorized,
@@ -15,14 +14,12 @@ const createUser = (req, res) => {
     .hash(password, 10)
     .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
-      res
-        .status(201)
-        .send({
-          name: user.name,
-          avatar: user.avatar,
-          email: user.email,
-          _id: user._id,
-        });
+      res.status(201).send({
+        name: user.name,
+        avatar: user.avatar,
+        email: user.email,
+        _id: user._id,
+      });
     })
     .catch((err) => {
       if (err.name === "MongoServerError") {
@@ -79,7 +76,13 @@ const updateProfile = (req, res) => {
     });
 };
 const getCurrentUser = (req, res) => {
-  User.findById(req.user._id).then((user) => res.send(user));
+  User.findById(req.user._id)
+    .then((user) => res.send(user))
+    .catch(() => {
+      res
+        .status(serverError)
+        .send({ message: "An error occured on the server." });
+    });
 };
 
 module.exports = {
