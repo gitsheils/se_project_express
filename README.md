@@ -1,5 +1,5 @@
 **Intro**
-This project uses Express.js to set up a server for the WTWR website and connects to the Mongoose database. Using request methods like get(), post() and others we are able to process requests related to users and clothing items. In the handlers for these methods we use methods like find(), create() and findByIdAndUpdate() to retreive info, add info and update info in the database.
+This project uses Express.js to set up a server for the WTWR website and connects to the Mongoose database. Using request methods like get(), post() and others we are able to process requests related to users and clothing items. In the handlers for these methods we use methods like find(), create() and findByIdAndUpdate() to retreive info, add info and update info in the database. Our server application was later deployed using Google Cloud Platform, which we also used to deploy our front-end WTWR website (https://www.wtwrtriple.jumpingcrab.com/).
 
 # WTWR (What to Wear?): Back End
 

@@ -6,6 +6,8 @@ const { login, createUser } = require("../controllers/users");
 
 const authorization = require("../middleware/auth");
 
+const { validateRegister, validateLogin } = require("../middleware/validation");
+
 /*
 router.use("/users", userRouter);
 router.use("/items", clothingItemRouter);
@@ -16,8 +18,8 @@ router.use((req, res) => {
 });
 */
 
-router.post("/signin", login);
-router.post("/signup", createUser);
+router.post("/signin", validateLogin, login);
+router.post("/signup", validateRegister, createUser);
 router.use("/items", clothingItemRouter);
 
 router.use(authorization);
