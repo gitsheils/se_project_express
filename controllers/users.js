@@ -4,8 +4,6 @@ const User = require("../models/user");
 
 const ErrorBadRequest = require("../utils/ErrorBadRequest");
 const ErrorUnauthorized = require("../utils/ErrorUnauthorized");
-const ErrorForbidden = require("../utils/ErrorForbidden");
-const ErrorNotFound = require("../utils/ErrorNotFound");
 const ErrorConflict = require("../utils/ErrorConflict");
 const ErrorServer = require("../utils/ErrorServer");
 
@@ -46,9 +44,9 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
-        return next(new ErrorUnauthorized(e.message));
+        return next(new ErrorUnauthorized(err.message));
       }
-      next(new ErrorServer("An error occured on the server."));
+      return next(new ErrorServer("An error occured on the server."));
     });
 };
 
@@ -72,9 +70,7 @@ const updateProfile = (req, res, next) => {
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => res.send(user))
-    .catch(() => {
-      return next(new ErrorServer("An error occured on the server."));
-    });
+    .catch(() => next(new ErrorServer("An error occured on the server.")));
 };
 
 /*

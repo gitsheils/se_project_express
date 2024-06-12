@@ -1,17 +1,9 @@
 const ClothingItem = require("../models/clothingItem");
-const {
-  invalidInput,
-  dataDoesNotExist,
-  serverError,
-  forbidden,
-} = require("../utils/errors");
 
 const ErrorBadRequest = require("../utils/ErrorBadRequest");
-const ErrorUnauthorized = require("../utils/ErrorUnauthorized");
-const ErrorForbidden = require("../utils/ErrorForbidden");
 const ErrorNotFound = require("../utils/ErrorNotFound");
-const ErrorConflict = require("../utils/ErrorConflict");
 const ErrorServer = require("../utils/ErrorServer");
+const ErrorForbidden = require("../utils/ErrorForbidden");
 
 const getItems = (req, res, next) => {
   ClothingItem.find({})
@@ -37,9 +29,7 @@ const deleteItem = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (!(item.owner.toString() === req.user._id)) {
-        return res
-          .status(forbidden)
-          .send({ message: "Item does not belong to user" });
+        throw new ErrorForbidden("Item does not belong to user");
       }
       return ClothingItem.findByIdAndDelete(req.params.itemId).then(() =>
         res.send(item)
@@ -52,7 +42,7 @@ const deleteItem = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new ErrorNotFound(err.message));
       }
-      return next(new ErrorServer("An error occured on the server."));
+      return next(err);
     });
 };
 

@@ -8,8 +8,9 @@ const cors = require("cors");
 
 require("dotenv").config();
 
-const errorHandler = require("./middleware/error-handler");
 const { errors } = require("celebrate");
+const errorHandler = require("./middleware/error-handler");
+
 const { requestLogger, errorLogger } = require("./middleware/logger");
 
 app.listen(3001, () => {
@@ -30,7 +31,7 @@ app.use((req, res, next) => {
 */
 app.use(requestLogger);
 
-//for code review purposes. remove after code review
+// for code review purposes. remove after code review
 app.get("/crash-test", () => {
   setTimeout(() => {
     throw new Error("Server will crash now");
